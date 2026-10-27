@@ -1,13 +1,19 @@
 {
   "version": 2,
-  "name": "portofolio-vercel",
-  "builds": [
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
-    }
-  ],
+  "name": "portofolio-evan-dwinata",
   "routes": [
+    {
+      "src": "/style.css",
+      "dest": "/style.css"
+    },
+    {
+      "src": "/script.js",
+      "dest": "/script.js"
+    },
+    {
+      "src": "/img/(.*)",
+      "dest": "/img/$1"
+    },
     {
       "src": "/(.*)",
       "dest": "/index.html"
