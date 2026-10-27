@@ -4,24 +4,38 @@ const navList = document.getElementById("nav-list");
 const navLinks = document.querySelectorAll(".nav-link");
 
 function setMenu(open) {
+  if (!navToggle || !navList) return;
   navToggle.classList.toggle("active", open);
   navList.classList.toggle("active", open);
   navToggle.setAttribute("aria-expanded", String(open));
-  navToggle.setAttribute("aria-label", open ? "Tutup menu" : "Buka menu");
+  navToggle.setAttribute("aria-label", open ? "Tutup menu navigasi" : "Buka menu navigasi");
+  document.body.classList.toggle("menu-open", open);
 }
-navToggle.addEventListener("click", () =>
-  setMenu(!navList.classList.contains("active")),
-);
-navLinks.forEach((link) =>
-  link.addEventListener("click", () => setMenu(false)),
-);
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") setMenu(false);
-});
+
+if (navToggle && navList) {
+  navToggle.addEventListener("click", () =>
+    setMenu(!navList.classList.contains("active")),
+  );
+  navLinks.forEach((link) =>
+    link.addEventListener("click", () => setMenu(false)),
+  );
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setMenu(false);
+  });
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 900 && navList.classList.contains("active")) {
+      setMenu(false);
+    }
+  });
+}
 
 /* ===== Header saat scroll ===== */
 const header = document.getElementById("header");
-const onScroll = () => header.classList.toggle("scrolled", window.scrollY > 40);
+const onScroll = () => {
+  if (header) {
+    header.classList.toggle("scrolled", window.scrollY > 30);
+  }
+};
 window.addEventListener("scroll", onScroll, { passive: true });
 onScroll();
 
@@ -40,7 +54,7 @@ const spy = new IntersectionObserver(
       }
     });
   },
-  { rootMargin: "-45% 0px -50% 0px" },
+  { rootMargin: "-40% 0px -50% 0px" },
 );
 sections.forEach((s) => spy.observe(s));
 
@@ -48,24 +62,26 @@ sections.forEach((s) => spy.observe(s));
 const form = document.getElementById("contact-form");
 const status = document.getElementById("form-status");
 
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const { name, email, message } = form.elements;
-  const subject = encodeURIComponent("Pesan dari portofolio: " + name.value);
-  const body = encodeURIComponent(
-    message.value + "\n\nNama: " + name.value + "\nEmail: " + email.value,
-  );
-  window.location.href =
-    "mailto:evandwinat@gmail.com?subject=" + subject + "&body=" + body;
-  status.textContent =
-    "Aplikasi email Anda akan terbuka. Tekan kirim di sana untuk menyelesaikan.";
-  form.reset();
-});
+if (form && status) {
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const { name, email, message } = form.elements;
+    const subject = encodeURIComponent("Pesan dari portofolio: " + name.value);
+    const body = encodeURIComponent(
+      message.value + "\n\nNama: " + name.value + "\nEmail: " + email.value,
+    );
+    window.location.href =
+      "mailto:evandwinat@gmail.com?subject=" + subject + "&body=" + body;
+    status.textContent =
+      "Aplikasi email Anda akan terbuka. Tekan kirim di sana untuk menyelesaikan.";
+    form.reset();
+  });
+}
 
 /* ===== Scroll Reveal Animasi ===== */
 const observerOptions = {
   threshold: 0.15,
-  rootMargin: "0px 0px -80px 0px",
+  rootMargin: "0px 0px -60px 0px",
 };
 
 const revealObserver = new IntersectionObserver((entries) => {
@@ -88,29 +104,47 @@ document.querySelectorAll(".reveal").forEach((el) => {
 });
 
 /* ===== Typing Effect Hero ===== */
-function typeWriter(element, text, speed = 50) {
+function initTyping() {
+  const typingElement = document.querySelector(".typing-text");
+  const cursor = document.querySelector(".typing-cursor");
+  if (!typingElement) return;
+
+  // Hormati preferensi accessibility reduced-motion
+  if (
+    window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ) {
+    if (cursor) cursor.style.display = "none";
+    return;
+  }
+
+  const text =
+    typingElement.getAttribute("data-text") ||
+    typingElement.textContent.trim();
+  if (!text) return;
+
+  // Kosongkan teks hanya saat siap mulai mengetik
+  typingElement.textContent = "";
+
   let i = 0;
-  element.textContent = "";
-  element.style.maxWidth = "none";
-  element.style.borderRight = "3px solid var(--sky)";
+  const speed = 28; // Kecepatan ketik yang nyaman dan halus
 
   function type() {
     if (i < text.length) {
-      element.textContent += text.charAt(i);
+      typingElement.textContent += text.charAt(i);
       i++;
       setTimeout(type, speed);
-    } else {
-      element.style.borderRight = "none";
+    } else if (cursor) {
+      cursor.classList.add("is-done");
     }
   }
 
-  type();
+  // Berikan jeda setelah halaman dan animasi hero awal tampil
+  setTimeout(type, 500);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const typingElement = document.querySelector(".typing-text");
-  if (typingElement) {
-    const text = typingElement.getAttribute("data-text");
-    setTimeout(() => typeWriter(typingElement, text), 800);
-  }
-});
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initTyping);
+} else {
+  initTyping();
+}
